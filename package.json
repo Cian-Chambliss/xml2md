@@ -1,0 +1,16 @@
+{
+  "name": "xml2md-cli",
+  "version": "0.1.2",
+  "private": true,
+  "type": "commonjs",
+  "bin": {
+    "xml2md": "bin/xml2md.js"
+  },
+  "scripts": {
+    "xml2md": "node bin/xml2md.js"
+  },
+  "dependencies": {
+    "libxml2-wasm": "^0.0.6",
+    "xslt-processor": "^0.11.0"
+  }
+}
