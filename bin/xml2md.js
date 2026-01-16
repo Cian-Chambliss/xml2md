@@ -160,10 +160,27 @@ async function run() {
     const inputPath = path.resolve(args._[0]);
     const outRoot = args.out ? path.resolve(args.out) : null;
     if (!outRoot) throw new Error('Missing required -o/--out output directory');
-    const xsltPath = path.resolve(args.xslt || path.join(process.cwd(), 'xform-md.xslt'));
+
+    async function resolveXsltPath(arg) {
+      if (arg) {
+        const p = path.resolve(arg);
+        if (await pathExists(p)) return p;
+        throw new Error(`XSLT not found at --xslt path: ${p}`);
+      }
+      const cwdDefault = path.resolve(path.join(process.cwd(), 'xform-md.xslt'));
+      if (await pathExists(cwdDefault)) return cwdDefault;
+      const bundled = path.resolve(__dirname, '..', 'xform-md.xslt');
+      if (await pathExists(bundled)) return bundled;
+      try {
+        const resolved = require.resolve('xml2md-cli/xform-md.xslt');
+        if (resolved) return resolved;
+      } catch {}
+      throw new Error('XSLT not found. Pass --xslt <path> or ensure xform-md.xslt is in the current directory or module folder.');
+    }
+
+    const xsltPath = await resolveXsltPath(args.xslt);
 
     if (!(await pathExists(inputPath))) throw new Error(`Input not found: ${inputPath}`);
-    if (!(await pathExists(xsltPath))) throw new Error(`XSLT not found: ${xsltPath}`);
     await ensureDir(outRoot);
 
     const { base, files } = await collectXmlFiles(inputPath, !!args.recurse);
